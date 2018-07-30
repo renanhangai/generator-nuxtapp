@@ -29,7 +29,8 @@ class SiteGenerator {
 
 		let packagePort = SiteGenerator.calculatePackageScriptPort( outputPackage );
 		for ( const site in this.sites ) {
-			this.sites[site].portDev = packagePort++;
+			this.sites[site].portDev = packagePort;
+			packagePort += 1;
 		}
 
 		for ( const site in this.sites ) {
@@ -42,7 +43,13 @@ class SiteGenerator {
 			if ( scriptName.startsWith( "build:" ) )
 				buildScripts.push( scriptName );
 		}
-		outputPackage.scripts["build"] = buildScripts.map( ( s ) => `yarn run "${s}"` ).join( " && " );
+		outputPackage.scripts["build"] = buildScripts.map( ( s ) => `yarn run '${s}'` ).join( " && " );
+
+		const scripts = {};
+		Object.keys( outputPackage.scripts ).sort().forEach( ( script ) => {
+			scripts[script] = outputPackage.scripts[ script ];
+		});
+		outputPackage.scripts = scripts;
 
 		return outputPackage;
 	}
