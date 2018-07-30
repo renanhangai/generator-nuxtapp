@@ -1,0 +1,11 @@
+# Temp files
+*~
+.\#*
+\#*
+.~*
+
+# Dependencies
+node_modules
+/vendor
+
+/build

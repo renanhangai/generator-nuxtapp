@@ -1,0 +1,11 @@
+{
+  "name": "<%= anwsers.name %>",
+  "version": "0.0.0",
+  "private": true,
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+  }
+}
