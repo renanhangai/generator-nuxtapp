@@ -25,6 +25,7 @@ module.exports = class extends Generator {
 			"etc/docker/server/Dockerfile": true,
 			"etc/server/entry.d/app": true,
 			"etc/server/http/default": true,
+			"www/common/nuxt/helper.js": true,
 		};
 		for ( const srcFile in files ) {
 			const dstFile = files[srcFile] === true ? srcFile : files[srcFile];
@@ -34,6 +35,9 @@ module.exports = class extends Generator {
 		}
 	}
 
+	/**
+	 * Install dependencies
+	 */
 	install() {
 		return;
 		this.installDependencies({
