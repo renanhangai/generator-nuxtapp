@@ -1,0 +1,10 @@
+{
+  "name": "@renanhangai/generator-nuxtapp",
+  "version": "0.0.0",
+  "author": "renanhangai <hangai.renan@gmail.com>",
+  "license": "MIT",
+  "description": "Generator for nuxt+php projects",
+  "dependencies": {
+    "yeoman-generator": "^3.1.1"
+  }
+}
