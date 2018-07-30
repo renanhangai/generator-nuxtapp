@@ -2,11 +2,15 @@ const Generator = require('yeoman-generator');
 
 module.exports = class extends Generator {
 
+	initializing() {
+		this.composeWith( require.resolve( "../site" ) );
+	}
+
 	prompting() {
 		return this.prompt([{
 			name: 'name',
 			type: 'input',
-			message: 'Digite o nome do projeto',
+			message: 'Nome do projeto',
 		}]).then( ( answers ) => {
 			this.anwsers = answers;
 		});
