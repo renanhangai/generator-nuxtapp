@@ -8,6 +8,3 @@ services:
       - ./etc/server:/docker/etc
       - ./:/app/local
       - /home/me
-    ports:
-      - 8080:8080
-      - 8081:8081

@@ -15,17 +15,23 @@ module.exports = class extends Generator {
 	writing() {
 		const files = {
 			"gitignore": ".gitignore",
-			"package.json": "package.json",
-			"README.md": "README.md",
+			"package.json": true,
+			"README.md": true,
+			"docker-compose.yml": true,
+			"etc/docker/server/Dockerfile": true,
+			"etc/server/entry.d/app": true,
+			"etc/server/http/default": true,
 		};
 		for ( const srcFile in files ) {
-			this.fs.copyTpl(  this.templatePath( srcFile ), this.destinationPath( files[srcFile] ), {
+			const dstFile = files[srcFile] === true ? srcFile : files[srcFile];
+			this.fs.copyTpl(  this.templatePath( srcFile ), this.destinationPath( dstFile ), {
 				anwsers: this.anwsers,
 			});
 		}
 	}
 
 	install() {
+		return;
 		this.installDependencies({
 			npm:   false,
 			bower: false,
