@@ -11,8 +11,12 @@ module.exports = class extends Generator {
 			name: 'name',
 			type: 'input',
 			message: 'Nome do projeto',
+		}, {
+			name: 'phpNamespace',
+			type: 'input',
+			message: 'Namespace do PHP',
 		}]).then( ( answers ) => {
-			this.anwsers = answers;
+			this.answers = answers;
 		});
 	}
 
@@ -20,24 +24,23 @@ module.exports = class extends Generator {
 		const files = {
 			"gitignore": ".gitignore",
 			"package.json": true,
+			"composer.json": true,
 			"README.md": true,
 			"docker-compose.yml": true,
 			"etc/docker/server/Dockerfile": true,
 			"etc/server/entry.d/app": true,
 			"etc/server/http/default": true,
 			"www/common/nuxt/helper.js": true,
+			"src/main.php": true,
 		};
 		for ( const srcFile in files ) {
 			const dstFile = files[srcFile] === true ? srcFile : files[srcFile];
 			this.fs.copyTpl(  this.templatePath( srcFile ), this.destinationPath( dstFile ), {
-				anwsers: this.anwsers,
+				answers: this.answers,
 			});
 		}
 	}
 
-	/**
-	 * Install dependencies
-	 */
 	install() {
 		return;
 		this.installDependencies({

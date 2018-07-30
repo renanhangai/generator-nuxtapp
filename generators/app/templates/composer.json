@@ -1,0 +1,14 @@
+{
+    "name": "<%= answers.phpNamespace.toLowerCase() %>/<%= answers.name %>",
+    "description": "",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "renanhangai/libweb-api": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "<%= answers.phpNamespace %>\\": "src/"
+        }
+    }
+}
