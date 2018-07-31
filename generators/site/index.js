@@ -1,4 +1,6 @@
 const Generator = require('yeoman-generator');
+const YAML = require( "js-yaml" );
+const cloneDeep = require( "lodash.clonedeep" );
 
 function askSite( self, sites ) {
 	sites = sites || [];
@@ -24,8 +26,7 @@ class SiteGenerator {
 	}
 
 	processPackage( inputPackage ) {
-		const outputPackage   = Object.assign( {}, inputPackage );
-		outputPackage.scripts = Object.assign( {}, outputPackage.scripts );
+		const outputPackage   = cloneDeep( inputPackage );
 
 		let packagePort = SiteGenerator.calculatePackageScriptPort( outputPackage );
 		for ( const site in this.sites ) {
@@ -54,6 +55,25 @@ class SiteGenerator {
 		return outputPackage;
 	}
 
+	processDockerCompose( inputDockerCompose ) {
+		const outputDockerCompose = cloneDeep( inputDockerCompose );
+
+		let instancePort = SiteGenerator.calculateDockerComposePort( inputDockerCompose );
+		for ( const site in this.sites ) {
+			this.sites[site].portHost = instancePort;
+			instancePort += 1;
+		}
+
+		outputDockerCompose.services.server.ports = outputDockerCompose.services.server.ports || [];
+		for ( const site in this.sites ) {
+			const port = this.sites[site].portHost;
+			outputDockerCompose.services.server.ports.push( `${port}:${port}` );
+		}
+
+		return outputDockerCompose;
+
+	}
+
 	static calculatePackageScriptPort( inputPackage ) {
 		let port = 3000;
 		for ( const scriptName in inputPackage.scripts ) {
@@ -65,6 +85,18 @@ class SiteGenerator {
 				continue;
 			port = Math.max( port, parseInt( match[1], 10 ) + 1 );
 		}
+		return port;
+	}
+
+	static calculateDockerComposePort( inputDockerCompose ) {
+		let port = 8080;
+		const ports = inputDockerCompose.services.server.ports || [];
+		ports.forEach( ( portDefinition ) => {
+			const [localPort, containerPort] = portDefinition.split( ":" );
+			let localPortInt = parseInt( localPort, 10 );
+			if ( localPortInt >= port )
+				port = localPortInt+1;
+		});
 		return port;
 	}
 }
@@ -80,11 +112,15 @@ module.exports = class extends Generator {
 	
 	writing() {
 		const inputPackage = this.fs.readJSON( this.destinationPath( "package.json" ) );
+		const inputDockerCompose = YAML.safeLoad( this.fs.read( this.destinationPath( "docker-compose.yml" ) ) );
 		
 		const siteGenerator = new SiteGenerator( this.sites );
 
 		const outputPackage = siteGenerator.processPackage( inputPackage );
 		this.fs.writeJSON( this.destinationPath( "package.json" ), outputPackage );
+
+		const outputDockerCompose = siteGenerator.processDockerCompose( inputDockerCompose );
+		this.fs.write( this.destinationPath( "docker-compose.yml" ), YAML.safeDump( outputDockerCompose ) );
 
 		// Compile site related
 		this.sites.forEach( ( site ) => {
@@ -102,3 +138,18 @@ module.exports = class extends Generator {
 		});
 	}
 };
+
+// Função auxiliar para perguntar o nome dos sites até 
+function askSite( self, sites ) {
+	sites = sites || [];
+	return self.prompt([{
+		name: 'site',
+		type: 'input',
+		message: 'Nome do site [ENTER para parar]',
+	}]).then( ( answers ) => {
+		if ( !answers.site )
+			return sites;
+		sites.push( answers.site );
+		return askSite( self, sites );
+	});
+}
