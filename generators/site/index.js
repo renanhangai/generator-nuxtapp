@@ -1,6 +1,7 @@
 const Generator = require('yeoman-generator');
 const YAML = require( "js-yaml" );
 const cloneDeep = require( "lodash.clonedeep" );
+const ejs = require( "ejs" );
 
 function askSite( self, sites ) {
 	sites = sites || [];
@@ -21,7 +22,7 @@ class SiteGenerator {
 	constructor( siteList ) {
 		this.sites = {};
 		siteList.forEach( ( site ) => {
-			this.sites[site] = {};
+			this.sites[site] = { name: site };
 		});
 	}
 
@@ -135,6 +136,14 @@ module.exports = class extends Generator {
 			const context = { site: site, phpNamespace: phpNamespace };
 			this.fs.copyTpl( this.templatePath( "index.php" ), this.destinationPath( `src/api/${site}/index.php` ), context );
 			this.fs.copyTpl( this.templatePath( "App.php" ), this.destinationPath( `src/api/${site}/App.php` ), context );
+		});
+
+		// Append site
+		const httpConfigTemplate = this.fs.read( this.templatePath( "http-config" ) );
+		this.sites.forEach( ( site ) => {
+			const context = { site: siteGenerator.sites[site] };
+			console.log( context );
+			this.fs.append( this.destinationPath( "etc/server/http/default" ), ejs.render( httpConfigTemplate, context ) );
 		});
 	}
 };
