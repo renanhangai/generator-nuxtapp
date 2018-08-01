@@ -4,6 +4,7 @@ module.exports = class extends Generator {
 
 	initializing() {
 		this.composeWith( require.resolve( "../site" ) );
+		this.composeWith( require.resolve( "../features" ) );
 	}
 
 	prompting() {
