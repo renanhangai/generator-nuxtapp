@@ -5,7 +5,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {},
-  "devDependencies": {},
-  "scripts": {
-  }
+  "devDependencies": {
+    "cross-env": "^5.2.0",
+    "nuxt": "^1.4.1"
+  },
+  "scripts": {}
 }
