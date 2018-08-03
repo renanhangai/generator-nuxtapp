@@ -2,6 +2,20 @@ const Generator = require('yeoman-generator');
 const cloneDeep = require( "lodash.clonedeep" );
 
 const FEATURES = {
+	config: {
+		test({ inputPackage, inputComposer }) {
+			return !!inputPackage.scripts.config;	
+		},
+		output( { generator, outputPackage } ) {
+			generator.fs.writeJSON( generator.destinationPath( "config.default.json" ), {} );
+			outputPackage.scripts = Object.assign({
+				"config": "cross-env config-builder config.default.json \"$APP_CONFIG\" +config.json --output-dir \"dist:$APP_BUILD_DIR\" -o config.json -o config.php",
+			}, outputPackage.scripts);
+		},
+		"package-dev": {
+			"@renanhangai/config-builder": "^0.1.1",
+		},
+	},
 	pug: {
 		"package-dev": {
 			"pug": "^2.0.3",
@@ -14,10 +28,15 @@ const FEATURES = {
 			"sass-loader": "^7.0.3"
 		},
 	},
-}
+};
+
+/**
+ * Helper class for testing features and enabling then
+ */
 class FeatureHelper {
 
-	static checkFeature( name, { inputPackage, inputComposer } ) {
+	static checkFeature( name, inputContext ) {
+		const { inputPackage, inputComposer } = inputContext;
 		const featureDescription = FEATURES[ name ];
 		if ( !featureDescription )
 			return;
@@ -50,7 +69,8 @@ class FeatureHelper {
 		return choices;
 	}
 
-	static writeFeature( name, { outputPackage, outputComposer } ) {
+	static writeFeature( name, outputContext ) {
+		const { outputPackage } = outputContext;
 		const featureDescription = FEATURES[ name ];
 		if ( featureDescription["package-dev"] ) {
 			outputPackage.devDependencies = Object.assign( {}, featureDescription["package-dev"], outputPackage.devDependencies );
@@ -58,6 +78,8 @@ class FeatureHelper {
 		if ( featureDescription["package"] ) {
 			outputPackage.dependencies = Object.assign( {}, featureDescription["package"], outputPackage.dependencies );
 		}
+		if ( featureDescription.output )
+			featureDescription.output.call( null, outputContext );
 	}
 
 	static sortObject( obj, key ) {
@@ -87,11 +109,13 @@ module.exports = class extends Generator {
 		const inputPackage = this.fs.readJSON( this.destinationPath( "package.json" ), {} );
 		
 		const outputPackage = cloneDeep( inputPackage );
-		this.answers.features.forEach( ( f ) => FeatureHelper.writeFeature( f, { outputPackage } ) );
+
+		const context = { generator: this, outputPackage };
+		this.answers.features.forEach( ( f ) => FeatureHelper.writeFeature( f, context ) );
 
 		FeatureHelper.sortObject( outputPackage, 'dependencies' );
 		FeatureHelper.sortObject( outputPackage, 'devDependencies' );
-		
+
 		this.fs.writeJSON( this.destinationPath( "package.json" ), outputPackage );
 	}
 
