@@ -1,3 +1,3 @@
-<template lang="pug">
-	div Hello <%= site %>
+<template>
+	<div>Hello <%= site %></div>
 </template>
