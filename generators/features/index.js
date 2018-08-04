@@ -71,6 +71,12 @@ const FEATURES = [
 			"@nuxtjs/apollo": "^4.0.0-rc1",
 		},
 	} ],
+	[ "axios", {
+		"featureFile": "axios.js",
+		"package": {
+			"@nuxtjs/axios": "^5.3.1",
+		},
+	} ],
 	[ "buefy", {
 		"featureFile": "buefy.js",
 		"package": {
