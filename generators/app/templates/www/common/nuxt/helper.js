@@ -27,7 +27,8 @@ class NuxtConfigHelper {
 		const helperFeatures = packageJson["nuxt-helper-features"] || [];
 		helperFeatures.forEach( ( f ) => {
 			const feature = require( path.resolve( __dirname, "./features", f+".js" ) );
-			feature.call( null, this.config, this._options[f] );
+			const featureOptions = this._options.features ? this._options.features[f] : void(0);
+			feature.call( null, this.config, featureOptions );
 		});
 
 		this.config.plugins = [].concat( this.config.plugins ).concat( this._options.plugins ).filter( Boolean );
