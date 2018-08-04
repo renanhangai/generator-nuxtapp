@@ -192,7 +192,7 @@ module.exports = class extends Generator {
 			name: 'features',
 			type: 'checkbox',
 			message: 'Diga quais módulos você quer',
-			pageSize: 12,
+			pageSize: 21,
 			choices: FeatureHelper.getPromptChoices( context ),
 		}]).then( ( answers ) => {
 			this.answers = answers;	
