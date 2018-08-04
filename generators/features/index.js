@@ -58,7 +58,7 @@ const FEATURES = [
 			"typescript": "^3.0.1"
 		},
 	} ],
-	new inquirer.Separator( '***** API *****' ),
+	new inquirer.Separator( '***** Modules *****' ),
 	[ "apollo", {
 		"featureFile": "apollo.js",
 		"package": {
@@ -69,6 +69,12 @@ const FEATURES = [
 		"featureFile": "buefy.js",
 		"package": {
 			"nuxt-buefy": "^0.1.0",
+		},
+	} ],
+	[ "vuetify", {
+		"featureFile": "vuetify.js",
+		"package": {
+			"@nuxtjs/vuetify": "^0.4.2",
 		},
 	} ],
 ];
