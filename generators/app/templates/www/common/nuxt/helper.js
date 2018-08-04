@@ -23,11 +23,11 @@ class NuxtConfigHelper {
 			modules: [],
 			plugins: [],
 		};
-		const package = require( path.resolve( ROOT_DIR, 'package.json' ) );
-		const helperFeatures = package.nuxtHelperFeatures || [];
+		const packageJson = require( path.resolve( ROOT_DIR, 'package.json' ) );
+		const helperFeatures = packageJson["nuxt-helper-features"] || [];
 		helperFeatures.forEach( ( f ) => {
 			const feature = require( path.resolve( __dirname, "./features", f+".js" ) );
-			feature.call( null, this, this._options[f] || {} );
+			feature.call( null, this.config, this._options[f] );
 		});
 
 		this.config.plugins = [].concat( this.config.plugins ).concat( this._options.plugins ).filter( Boolean );
