@@ -1,8 +1,11 @@
 const Generator = require('yeoman-generator');
 const cloneDeep = require( "lodash.clonedeep" );
+const inquirer = require( "inquirer" );
 
 const FEATURES = [
+	new inquirer.Separator( '***** Basic Support *****' ),
 	[ "config", {
+		checked: true,
 		test({ inputPackage, inputComposer }) {
 			return !!inputPackage.scripts.config;	
 		},
@@ -16,18 +19,46 @@ const FEATURES = [
 			"@renanhangai/config-builder": "^0.1.1",
 		},
 	} ],
+	new inquirer.Separator( '***** Language Support *****' ),
+	[ "coffeescript", {
+		"package-dev": {
+			"coffee-loader": "^0.9.0",
+			"coffeescript": "^2.3.1",
+		},
+	} ],
+	[ "less", {
+		"package-dev": {
+			"less": "^3.8.0",
+			"less-loader": "^4.1.0",
+		},
+	} ],
 	[ "pug", {
+		checked: true,
 		"package-dev": {
 			"pug": "^2.0.3",
 			"pug-plain-loader": "^1.0.0",
 		},
 	} ],
 	[ "sass", {
+		checked: true,
 		"package-dev": {
 			"node-sass": "^4.9.2",
 			"sass-loader": "^7.0.3"
 		},
 	} ],
+	[ "stylus", {
+		"package-dev": {
+			"stylus": "^0.54.5",
+			"stylus-loader": "^3.0.2",
+		},
+	} ],
+	[ "typescript", {
+		"package-dev": {
+			"ts-loader": "^4.4.2",
+			"typescript": "^3.0.1"
+		},
+	} ],
+	new inquirer.Separator( '***** API *****' ),
 ];
 
 /**
@@ -35,16 +66,9 @@ const FEATURES = [
  */
 class FeatureHelper {
 
-	static checkFeature( name, inputContext ) {
+	static checkFeature( featureDescription, inputContext ) {
 		const { inputPackage, inputComposer } = inputContext;
-		const feature = FEATURES.find( ( feature ) => feature[0] === name );
-		if ( !feature )
-			throw new Error( `Invalid feature ${name}` );
 
-		const featureDescription = feature[1];
-		if ( !featureDescription )
-			return;
-		
 		if ( featureDescription["package-dev"] ) {
 			if ( !inputPackage.devDependencies )
 				return false;
@@ -64,11 +88,35 @@ class FeatureHelper {
 		return true;
 	}
 
+	static findFeatureDescription( name ) {
+		const feature = FEATURES.find( ( feature ) => {
+			if ( !Array.isArray( feature ) )
+				return false;
+			return feature[0] === name;
+		} );
+		if ( !feature )
+			throw new Error( `Invalid feature ${name}` );
+		return feature[1];
+	}
+
 	static getPromptChoices( { inputPackage, inputComposer } ) {
 		const choices = [];
 		FEATURES.forEach( function( feature ) {
+			if ( feature instanceof inquirer.Separator ) {
+				choices.push( feature );
+				return;
+			} 
+			
 			const featureName = feature[0];
-			const c = { name: featureName, disabled: FeatureHelper.checkFeature( featureName, { inputPackage, inputComposer } ) };
+			const featureDescription = FeatureHelper.findFeatureDescription( featureName );
+			if ( !featureDescription )
+				return;
+
+			const c = { 
+				name: featureName, 
+				checked: featureDescription.checked,
+				disabled: FeatureHelper.checkFeature( featureDescription, { inputPackage, inputComposer } ) ? "Instalado" : false,
+			};
 			choices.push( c );
 		});
 		return choices;
@@ -76,11 +124,11 @@ class FeatureHelper {
 
 	static writeFeature( name, outputContext ) {
 		const { outputPackage } = outputContext;
-		const feature = FEATURES.find( ( item ) => item[0] === name );
-		if ( !feature )
-			throw new Error( `Invalid feature ${name}` );
 
-		const featureDescription = feature[1];
+		const featureDescription = FeatureHelper.findFeatureDescription( name );
+		if ( !featureDescription )
+			return;
+
 		if ( featureDescription["package-dev"] ) {
 			outputPackage.devDependencies = Object.assign( {}, featureDescription["package-dev"], outputPackage.devDependencies );
 		}
@@ -116,6 +164,7 @@ module.exports = class extends Generator {
 			name: 'features',
 			type: 'checkbox',
 			message: 'Diga quais módulos você quer',
+			pageSize: 12,
 			choices: FeatureHelper.getPromptChoices({ inputPackage }),
 		}]).then( ( answers ) => {
 			this.answers = answers;	
