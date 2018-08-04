@@ -71,6 +71,12 @@ const FEATURES = [
 			"nuxt-buefy": "^0.1.0",
 		},
 	} ],
+	[ "material-design-icons", {
+		"featureFile": "material-design-icons.js",
+		"package": {
+			"nuxt-material-design-icons": "^1.0.4",
+		},
+	} ],
 	[ "vuetify", {
 		"featureFile": "vuetify.js",
 		"package": {
