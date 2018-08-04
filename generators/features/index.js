@@ -1,8 +1,8 @@
 const Generator = require('yeoman-generator');
 const cloneDeep = require( "lodash.clonedeep" );
 
-const FEATURES = {
-	config: {
+const FEATURES = [
+	[ "config", {
 		test({ inputPackage, inputComposer }) {
 			return !!inputPackage.scripts.config;	
 		},
@@ -15,20 +15,20 @@ const FEATURES = {
 		"package-dev": {
 			"@renanhangai/config-builder": "^0.1.1",
 		},
-	},
-	pug: {
+	} ],
+	[ "pug", {
 		"package-dev": {
 			"pug": "^2.0.3",
 			"pug-plain-loader": "^1.0.0",
 		},
-	},
-	sass: {
+	} ],
+	[ "sass", {
 		"package-dev": {
 			"node-sass": "^4.9.2",
 			"sass-loader": "^7.0.3"
 		},
-	},
-};
+	} ],
+];
 
 /**
  * Helper class for testing features and enabling then
@@ -37,7 +37,11 @@ class FeatureHelper {
 
 	static checkFeature( name, inputContext ) {
 		const { inputPackage, inputComposer } = inputContext;
-		const featureDescription = FEATURES[ name ];
+		const feature = FEATURES.find( ( feature ) => feature[0] === name );
+		if ( !feature )
+			throw new Error( `Invalid feature ${name}` );
+
+		const featureDescription = feature[1];
 		if ( !featureDescription )
 			return;
 		
@@ -62,16 +66,21 @@ class FeatureHelper {
 
 	static getPromptChoices( { inputPackage, inputComposer } ) {
 		const choices = [];
-		for ( const key in FEATURES ) {
-			const c = { name: key, disabled: FeatureHelper.checkFeature( key, { inputPackage, inputComposer } ) };
+		FEATURES.forEach( function( feature ) {
+			const featureName = feature[0];
+			const c = { name: featureName, disabled: FeatureHelper.checkFeature( featureName, { inputPackage, inputComposer } ) };
 			choices.push( c );
-		}
+		});
 		return choices;
 	}
 
 	static writeFeature( name, outputContext ) {
 		const { outputPackage } = outputContext;
-		const featureDescription = FEATURES[ name ];
+		const feature = FEATURES.find( ( item ) => item[0] === name );
+		if ( !feature )
+			throw new Error( `Invalid feature ${name}` );
+
+		const featureDescription = feature[1];
 		if ( featureDescription["package-dev"] ) {
 			outputPackage.devDependencies = Object.assign( {}, featureDescription["package-dev"], outputPackage.devDependencies );
 		}
@@ -91,10 +100,18 @@ class FeatureHelper {
 	}
 }
 
+/**
+ * Generator class
+ */
 module.exports = class extends Generator {
 
 	prompting() {
 		const inputPackage = this.fs.readJSON( this.destinationPath( "package.json" ), {} );
+		const choices = FeatureHelper.getPromptChoices({ inputPackage });
+		if ( !choices.some( ( item ) => !item.disabled ) ) {
+			this.log( `Todos os módulos já foram instalados` );
+			return;
+		}
 		return this.prompt([{
 			name: 'features',
 			type: 'checkbox',
@@ -106,6 +123,9 @@ module.exports = class extends Generator {
 	}
 
 	writing() {
+		if ( !this.answers )
+			return;
+
 		const inputPackage = this.fs.readJSON( this.destinationPath( "package.json" ), {} );
 		
 		const outputPackage = cloneDeep( inputPackage );
