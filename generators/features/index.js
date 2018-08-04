@@ -59,6 +59,12 @@ const FEATURES = [
 		},
 	} ],
 	new inquirer.Separator( '***** Modules *****' ),
+	[ "analytics", {
+		"featureFile": "analytics.js",
+		"package": {
+			"@nuxtjs/google-analytics": "^2.0.2",
+		},
+	} ],
 	[ "apollo", {
 		"featureFile": "apollo.js",
 		"package": {
