@@ -7,7 +7,7 @@
   "dependencies": {},
   "devDependencies": {
     "cross-env": "^5.2.0",
-    "nuxt": "^1.4.1"
+    "nuxt": "^1.4.2"
   },
   "scripts": {}
 }
