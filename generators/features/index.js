@@ -65,6 +65,12 @@ const FEATURES = [
 			"@nuxtjs/apollo": "^4.0.0-rc1",
 		},
 	} ],
+	[ "buefy", {
+		"featureFile": "buefy.js",
+		"package": {
+			"nuxt-buefy": "^0.1.0",
+		},
+	} ],
 ];
 
 /**
