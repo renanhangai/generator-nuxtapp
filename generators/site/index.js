@@ -3,20 +3,6 @@ const YAML = require( "js-yaml" );
 const cloneDeep = require( "lodash.clonedeep" );
 const ejs = require( "ejs" );
 
-function askSite( self, sites ) {
-	sites = sites || [];
-	return self.prompt([{
-		name: 'site',
-		type: 'input',
-		message: 'Nome do site [ENTER para pular]',
-	}]).then( ( answers ) => {
-		if ( !answers.site )
-			return sites;
-		sites.push( answers.site );
-		return askSite( self, sites );
-	});
-}
-
 class SiteGenerator {
 
 	constructor( siteList ) {
@@ -142,23 +128,23 @@ module.exports = class extends Generator {
 		const httpConfigTemplate = this.fs.read( this.templatePath( "http-config" ) );
 		this.sites.forEach( ( site ) => {
 			const context = { site: siteGenerator.sites[site] };
-			console.log( context );
 			this.fs.append( this.destinationPath( "etc/server/http/default" ), ejs.render( httpConfigTemplate, context ) );
 		});
 	}
 };
 
-// Função auxiliar para perguntar o nome dos sites até 
-function askSite( self, sites ) {
-	sites = sites || [];
+// Ask for site names
+function askSite( self ) {
 	return self.prompt([{
 		name: 'site',
 		type: 'input',
-		message: 'Nome do site [ENTER para parar]',
+		default: "site",
+		message: 'Nome dos sites',
 	}]).then( ( answers ) => {
-		if ( !answers.site )
-			return sites;
-		sites.push( answers.site );
-		return askSite( self, sites );
+		let sites = answers.site.split( /\s+/ );
+		sites = sites.filter( ( s ) => {
+			return !self.fs.exists( self.destinationPath( `www/${s}/nuxt.config.js` ) );
+		});
+		return sites;
 	});
 }
