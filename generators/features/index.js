@@ -59,6 +59,12 @@ const FEATURES = [
 		},
 	} ],
 	new inquirer.Separator( '***** API *****' ),
+	[ "apollo", {
+		"featureFile": "apollo.js",
+		"package": {
+			"@nuxtjs/apollo": "^4.0.0-rc1",
+		},
+	} ],
 ];
 
 /**
@@ -66,8 +72,44 @@ const FEATURES = [
  */
 class FeatureHelper {
 
-	static checkFeature( featureDescription, inputContext ) {
-		const { inputPackage, inputComposer } = inputContext;
+
+	static findFeatureDescription( name ) {
+		const feature = FEATURES.find( ( feature ) => {
+			if ( !Array.isArray( feature ) )
+				return false;
+			return feature[0] === name;
+		} );
+		if ( !feature )
+			throw new Error( `Invalid feature ${name}` );
+		return feature[1];
+	}
+
+	static getPromptChoices( context ) {
+		const { inputPackage, inputComposer } = context;
+		const choices = [];
+		FEATURES.forEach( function( feature ) {
+			if ( feature instanceof inquirer.Separator ) {
+				choices.push( feature );
+				return;
+			} 
+			
+			const featureName = feature[0];
+			const featureDescription = FeatureHelper.findFeatureDescription( featureName );
+			if ( !featureDescription )
+				return;
+
+			const c = { 
+				name: featureName, 
+				checked: featureDescription.checked,
+				disabled: FeatureHelper.checkFeature( featureName, featureDescription, context ) ? "Instalado" : false,
+			};
+			choices.push( c );
+		});
+		return choices;
+	}
+
+	static checkFeature( featureName, featureDescription, inputContext ) {
+		const { generator, inputPackage, inputComposer } = inputContext;
 
 		if ( featureDescription["package-dev"] ) {
 			if ( !inputPackage.devDependencies )
@@ -88,42 +130,8 @@ class FeatureHelper {
 		return true;
 	}
 
-	static findFeatureDescription( name ) {
-		const feature = FEATURES.find( ( feature ) => {
-			if ( !Array.isArray( feature ) )
-				return false;
-			return feature[0] === name;
-		} );
-		if ( !feature )
-			throw new Error( `Invalid feature ${name}` );
-		return feature[1];
-	}
-
-	static getPromptChoices( { inputPackage, inputComposer } ) {
-		const choices = [];
-		FEATURES.forEach( function( feature ) {
-			if ( feature instanceof inquirer.Separator ) {
-				choices.push( feature );
-				return;
-			} 
-			
-			const featureName = feature[0];
-			const featureDescription = FeatureHelper.findFeatureDescription( featureName );
-			if ( !featureDescription )
-				return;
-
-			const c = { 
-				name: featureName, 
-				checked: featureDescription.checked,
-				disabled: FeatureHelper.checkFeature( featureDescription, { inputPackage, inputComposer } ) ? "Instalado" : false,
-			};
-			choices.push( c );
-		});
-		return choices;
-	}
-
 	static writeFeature( name, outputContext ) {
-		const { outputPackage } = outputContext;
+		const { generator, outputPackage } = outputContext;
 
 		const featureDescription = FeatureHelper.findFeatureDescription( name );
 		if ( !featureDescription )
@@ -137,6 +145,12 @@ class FeatureHelper {
 		}
 		if ( featureDescription.output )
 			featureDescription.output.call( null, outputContext );
+
+
+		if ( featureDescription.featureFile ) {
+			outputPackage["nuxt-helper-features"] = [].concat( outputPackage["nuxt-helper-features"] ).concat( name ).filter( Boolean );
+			generator.fs.copy( generator.templatePath( featureDescription.featureFile ), generator.destinationPath( `www/common/nuxt/features/${name}.js` ) );
+		}
 	}
 
 	static sortObject( obj, key ) {
@@ -160,12 +174,14 @@ module.exports = class extends Generator {
 			this.log( `Todos os módulos já foram instalados` );
 			return;
 		}
+
+		const context = { generator: this, inputPackage };
 		return this.prompt([{
 			name: 'features',
 			type: 'checkbox',
 			message: 'Diga quais módulos você quer',
 			pageSize: 12,
-			choices: FeatureHelper.getPromptChoices({ inputPackage }),
+			choices: FeatureHelper.getPromptChoices( context ),
 		}]).then( ( answers ) => {
 			this.answers = answers;	
 		});
