@@ -1,6 +1,7 @@
 const Generator = require('yeoman-generator');
 const cloneDeep = require( "lodash.clonedeep" );
 const inquirer = require( "inquirer" );
+const path = require( "path" );
 
 const FEATURES = [
 	new inquirer.Separator( '***** Basic Support *****' ),
@@ -87,6 +88,15 @@ const FEATURES = [
 		"featureFile": "material-design-icons.js",
 		"package": {
 			"nuxt-material-design-icons": "^1.0.4",
+		},
+	} ],
+	[ "vuelidate", {
+		"featureFile": "vuelidate.js",
+		"package": {
+			"vuelidate": "^0.7.4",
+		},
+		"files": {
+			"plugins/vuelidate.js": "plugins/vuelidate.js",
 		},
 	} ],
 	[ "vuetify", {
@@ -180,6 +190,13 @@ class FeatureHelper {
 		if ( featureDescription.featureFile ) {
 			outputPackage["nuxt-helper-features"] = [].concat( outputPackage["nuxt-helper-features"] ).concat( name ).filter( Boolean );
 			generator.fs.copy( generator.templatePath( featureDescription.featureFile ), generator.destinationPath( `www/common/nuxt/features/${name}.js` ) );
+		}
+
+		if ( featureDescription.files ) {
+			for( const destFile in featureDescription.files ) {
+				const srcFile = featureDescription.files[ destFile ];
+				generator.fs.copy( generator.templatePath( srcFile ), generator.destinationPath( path.join( `www/common/nuxt/features/`, destFile ) ) );
+			}
 		}
 	}
 
