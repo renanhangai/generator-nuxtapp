@@ -33,7 +33,7 @@ class Type extends \GraphQL\Type\Definition\Type {
 	/**
 	 * Get a type by using the static call directly
 	 */
-	public static function __callStatic( $name ) {
+	public static function __callStatic( $name, $args ) {
 		return static::get( $name );
 	}
 };
