@@ -125,7 +125,7 @@ class FeatureHelper {
 		return feature[1];
 	}
 
-	static getPromptChoices( context ) {
+	static getPromptChoices( context, force ) {
 		const { inputPackage, inputComposer } = context;
 		const choices = [];
 		FEATURES.forEach( function( feature ) {
@@ -139,10 +139,12 @@ class FeatureHelper {
 			if ( !featureDescription )
 				return;
 
+			const isInstalled = FeatureHelper.checkFeature( featureName, featureDescription, context );
+
 			const c = { 
 				name: featureName, 
-				checked: featureDescription.checked,
-				disabled: FeatureHelper.checkFeature( featureName, featureDescription, context ) ? "Instalado" : false,
+				checked:  force ? false : featureDescription.checked,
+				disabled: force ? false : (isInstalled ? "Instalado" : false),
 			};
 			choices.push( c );
 		});
@@ -215,6 +217,15 @@ class FeatureHelper {
  */
 module.exports = class extends Generator {
 
+	constructor( args, opts ) {
+		super( args, opts );
+		this.option( 'force', {
+			desc:  "Força a instalação de módulos mesmo já instalados",
+			alias: "f",
+			type:  Boolean,
+		} );
+	}
+
 	prompting() {
 		const inputPackage = this.fs.readJSON( this.destinationPath( "package.json" ), {} );
 		const choices = FeatureHelper.getPromptChoices({ inputPackage });
@@ -229,7 +240,7 @@ module.exports = class extends Generator {
 			type: 'checkbox',
 			message: 'Diga quais módulos você quer',
 			pageSize: 21,
-			choices: FeatureHelper.getPromptChoices( context ),
+			choices: FeatureHelper.getPromptChoices( context, this.options.force ),
 		}]).then( ( answers ) => {
 			this.answers = answers;	
 		});
