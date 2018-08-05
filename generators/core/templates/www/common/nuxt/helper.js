@@ -25,7 +25,9 @@ class NuxtConfigHelper {
 			srcDir: this._dir,
 			build: {
 				extend: function( webpackConfig ) {
-					config.extend.forEach( ( e ) => { e.call( this, webpackConfig ); } );
+					config.extend.forEach( ( fn ) => { 
+						fn && fn.call( this, webpackConfig ); 
+					} );
 				},
 			},
 			buildDir: path.join( BUILD_DIR, "tmp/.nuxt", this._baseDir ),
