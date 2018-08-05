@@ -7,15 +7,27 @@ class NuxtConfigHelper {
 
 	constructor( dir, options ) {
 		this._dir     = dir;
-		this._options = options || {};
+		this._options = Object.assign( {}, options );
 
 		this._baseDir = path.basename( dir );
 	}
 
 	generate() {
+		const options = Object.assign( {}, this._options );
+		options.extend     = [].concat( options.extend );
+		options.plugins    = [].concat( options.plugins );
+		options.modules    = [].concat( options.modules );
+		options.middleware = [].concat( options.middleware );
+		options.features   = Object.assign( {}, options.features );
+		
 		this.config = {
 			rootDir: ROOT_DIR,
 			srcDir: this._dir,
+			build: {
+				extend: function( config ) {
+					options.extend.forEach( ( e ) => { e.call( this, config ); } );
+				},
+			},
 			buildDir: path.join( BUILD_DIR, "tmp/.nuxt", this._baseDir ),
 			generate: {
 				dir: path.join( BUILD_DIR, "www", this._baseDir ),
@@ -27,15 +39,15 @@ class NuxtConfigHelper {
 		const helperFeatures = packageJson["nuxt-helper-features"] || [];
 		helperFeatures.forEach( ( f ) => {
 			const feature = require( path.resolve( __dirname, "./features", f+".js" ) );
-			const featureOptions = this._options.features ? this._options.features[f] : void(0);
-			feature.call( null, this.config, featureOptions );
+			const featureOptions = options.features ? options.features[f] : void(0);
+			feature.call( null, options, featureOptions );
 		});
 
-		this.config.plugins = [].concat( this.config.plugins ).concat( this._options.plugins ).filter( Boolean );
-		this.config.modules = [].concat( this.config.modules ).concat( this._options.modules ).filter( Boolean );
+		this.config.plugins = [].concat( options.plugins ).filter( Boolean );
+		this.config.modules = [].concat( options.modules ).filter( Boolean );
 		this.config.router = this.config.router || {};
-		this.config.router.middleware = [].concat( this.config.router.middleware ).concat( this._options.middleware ).filter( Boolean );
-		
+		this.config.router.middleware = [].concat( this.config.router.middleware ).concat( options.middleware ).filter( Boolean );
+
 		return this.config;
 	}
 };
