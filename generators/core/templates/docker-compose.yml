@@ -5,10 +5,14 @@ services:
       context: etc/docker
       dockerfile: ./server/Dockerfile
     volumes:
+      - home:/home/me
+      - app:/app
       - ./etc/server:/docker/etc
       - ./:/app/local
-      - /home/me
-
+volumes:
+  home:
+  app:
+  
 networks:
   default:
     driver: bridge
