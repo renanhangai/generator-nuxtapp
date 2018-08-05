@@ -5,27 +5,27 @@ const ROOT_DIR  = path.resolve( __dirname, "../../../" );
 
 class NuxtConfigHelper {
 
-	constructor( dir, options ) {
+	constructor( dir, config ) {
 		this._dir     = dir;
-		this._options = Object.assign( {}, options );
+		this._config = Object.assign( {}, config );
 
 		this._baseDir = path.basename( dir );
 	}
 
 	generate() {
-		const options = Object.assign( {}, this._options );
-		options.extend     = [].concat( options.extend );
-		options.plugins    = [].concat( options.plugins );
-		options.modules    = [].concat( options.modules );
-		options.middleware = [].concat( options.middleware );
-		options.features   = Object.assign( {}, options.features );
+		const config = Object.assign( {}, this._config );
+		config.extend     = [].concat( config.extend );
+		config.plugins    = [].concat( config.plugins );
+		config.modules    = [].concat( config.modules );
+		config.middleware = [].concat( config.middleware );
+		config.features   = Object.assign( {}, config.features );
 		
-		this.config = {
+		const nuxtConfig = {
 			rootDir: ROOT_DIR,
 			srcDir: this._dir,
 			build: {
 				extend: function( config ) {
-					options.extend.forEach( ( e ) => { e.call( this, config ); } );
+					config.extend.forEach( ( e ) => { e.call( this, config ); } );
 				},
 			},
 			buildDir: path.join( BUILD_DIR, "tmp/.nuxt", this._baseDir ),
@@ -39,22 +39,22 @@ class NuxtConfigHelper {
 		const helperFeatures = packageJson["nuxt-helper-features"] || [];
 		helperFeatures.forEach( ( f ) => {
 			const feature = require( path.resolve( __dirname, "./features", f+".js" ) );
-			const featureOptions = options.features ? options.features[f] : void(0);
-			feature.call( null, options, featureOptions );
+			const featureOptions = config.features ? config.features[f] : void(0);
+			feature.call( null, config, featureOptions );
 		});
 
-		this.config.plugins = [].concat( options.plugins ).filter( Boolean );
-		this.config.modules = [].concat( options.modules ).filter( Boolean );
-		this.config.router = this.config.router || {};
-		this.config.router.middleware = [].concat( this.config.router.middleware ).concat( options.middleware ).filter( Boolean );
+		nuxtConfig.plugins = [].concat( config.plugins ).filter( Boolean );
+		nuxtConfig.modules = [].concat( config.modules ).filter( Boolean );
+		nuxtConfig.router = nuxtConfig.router || {};
+		nuxtConfig.router.middleware = [].concat( nuxtConfig.router.middleware ).concat( config.middleware ).filter( Boolean );
 
-		return this.config;
+		return nuxtConfig;
 	}
 };
 
-module.exports = function( dir, options ) {
+module.exports = function( dir, config ) {
 	const baseDir = path.basename( dir );
 
-	const helper = new NuxtConfigHelper( dir, options );
+	const helper = new NuxtConfigHelper( dir, config );
 	return helper.generate();
 };
