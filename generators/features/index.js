@@ -96,7 +96,8 @@ const FEATURES = [
 			"vuelidate": "^0.7.4",
 		},
 		"files": {
-			"plugins/vuelidate.js": "plugins/vuelidate.js",
+			"www/common/nuxt/features/plugins/vuelidate.js": "vuelidate/plugin.js",
+			"www/common/validators/index.js": "vuelidate/validators.js",
 		},
 	} ],
 	[ "vuetify", {
@@ -195,7 +196,7 @@ class FeatureHelper {
 		if ( featureDescription.files ) {
 			for( const destFile in featureDescription.files ) {
 				const srcFile = featureDescription.files[ destFile ];
-				generator.fs.copy( generator.templatePath( srcFile ), generator.destinationPath( path.join( `www/common/nuxt/features/`, destFile ) ) );
+				generator.fs.copy( generator.templatePath( srcFile ), generator.destinationPath( path.join( destFile ) ) );
 			}
 		}
 	}
