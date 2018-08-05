@@ -4,6 +4,9 @@
 \#*
 .~*
 
+# Log files
+/yarn-error.log
+
 # Dependencies
 node_modules
 /vendor
