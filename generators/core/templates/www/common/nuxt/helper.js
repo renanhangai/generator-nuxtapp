@@ -28,6 +28,7 @@ class NuxtConfigHelper {
 	generate() {
 		const config = Object.assign( {}, this._config );
 		config.alias      = Object.assign( {}, config.alias );
+		config.css        = [].concat( config.css );
 		config.extend     = [].concat( config.extend );
 		config.plugins    = [].concat( config.plugins );
 		config.modules    = [].concat( config.modules );
@@ -68,7 +69,8 @@ class NuxtConfigHelper {
 			feature.call( null, config, featureOptions );
 		});
 
-		// Fix plugins
+		// Fix configuration
+		nuxtConfig.css = [].concat( config.css ).filter( Boolean );
 		nuxtConfig.plugins = [].concat( config.plugins ).filter( Boolean );
 		nuxtConfig.modules = [].concat( config.modules ).filter( Boolean );
 		nuxtConfig.router.middleware = [].concat( config.middleware ).filter( Boolean );
