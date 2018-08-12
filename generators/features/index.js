@@ -87,7 +87,7 @@ const FEATURES = [
 	[ "material-design-icons", {
 		"featureFile": "material-design-icons.js",
 		"package": {
-			"nuxt-material-design-icons": "^1.0.4",
+			"@mdi/font": "^2.5.94",
 		},
 	} ],
 	[ "sass-resource-loader", {
