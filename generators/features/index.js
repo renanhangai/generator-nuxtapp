@@ -90,6 +90,12 @@ const FEATURES = [
 			"nuxt-material-design-icons": "^1.0.4",
 		},
 	} ],
+	[ "sass-resource-loader", {
+		"featureFile": "sass-resource-loader.js",
+		"package": {
+			"nuxt-sass-resources-loader": "^2.0.3",
+		},
+	} ],
 	[ "vuelidate", {
 		"featureFile": "vuelidate.js",
 		"package": {
