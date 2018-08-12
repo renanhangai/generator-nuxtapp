@@ -3,6 +3,19 @@ const fs = require( "fs" );
 const BUILD_DIR = process.env.APP_BUILD_DIR ? path.resolve( process.env.APP_BUILD_DIR ) : path.resolve( __dirname, "../../../dist" );
 const ROOT_DIR  = path.resolve( __dirname, "../../../" );
 
+/**
+
+	Uses a new config file with:
+
+	alias: The alias for webpack to resolve
+	extend: Extends the webpack configuration
+	features: Options for features
+	middleware: Middlewares used by nuxt.router
+	modules: Modules used by nuxt
+	plugins: Plugin used by nuxt
+
+ */
+
 class NuxtConfigHelper {
 
 	constructor( dir, config ) {
@@ -14,17 +27,24 @@ class NuxtConfigHelper {
 
 	generate() {
 		const config = Object.assign( {}, this._config );
+		config.alias      = Object.assign( {}, config.alias );
 		config.extend     = [].concat( config.extend );
 		config.plugins    = [].concat( config.plugins );
 		config.modules    = [].concat( config.modules );
 		config.middleware = [].concat( config.middleware );
 		config.features   = Object.assign( {}, config.features );
 		
+		// The nuxt configuration
 		const nuxtConfig = {
 			rootDir: ROOT_DIR,
 			srcDir: this._dir,
 			build: {
 				extend: function( webpackConfig ) {
+					// Resolve alias
+					if ( config.alias ) {
+						for ( const key in config.alias )
+							webpackConfig.resolve.alias[ key ] = config.alias[key];
+					}
 					config.extend.forEach( ( fn ) => { 
 						fn && fn.call( this, webpackConfig ); 
 					} );
@@ -36,7 +56,10 @@ class NuxtConfigHelper {
 			},
 			modules: [],
 			plugins: [],
+			router:  {},
 		};
+
+		// Resolve features
 		const packageJson = require( path.resolve( ROOT_DIR, 'package.json' ) );
 		const helperFeatures = packageJson["nuxt-helper-features"] || [];
 		helperFeatures.forEach( ( f ) => {
@@ -45,15 +68,16 @@ class NuxtConfigHelper {
 			feature.call( null, config, featureOptions );
 		});
 
+		// Fix plugins
 		nuxtConfig.plugins = [].concat( config.plugins ).filter( Boolean );
 		nuxtConfig.modules = [].concat( config.modules ).filter( Boolean );
-		nuxtConfig.router = nuxtConfig.router || {};
-		nuxtConfig.router.middleware = [].concat( nuxtConfig.router.middleware ).concat( config.middleware ).filter( Boolean );
+		nuxtConfig.router.middleware = [].concat( config.middleware ).filter( Boolean );
 
 		return nuxtConfig;
 	}
 };
 
+// Generate the configuration
 module.exports = function( dir, config ) {
 	const baseDir = path.basename( dir );
 
