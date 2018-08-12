@@ -12,6 +12,11 @@ class SiteGenerator {
 		});
 	}
 
+	/*
+	  Process package.json file
+
+	  Sets the new script entries and generate files
+	*/
 	processPackage( inputPackage ) {
 		const outputPackage   = cloneDeep( inputPackage );
 
@@ -23,15 +28,15 @@ class SiteGenerator {
 
 		for ( const site in this.sites ) {
 			outputPackage.scripts["dev:"+site] = `cross-env PORT=${this.sites[site].portDev} nuxt dev --config-file 'www/${site}/nuxt.config.js'`;
-			outputPackage.scripts["build:"+site] = `nuxt build --config-file 'www/${site}/nuxt.config.js'`;
+			outputPackage.scripts["generate:"+site] = `nuxt generate --config-file 'www/${site}/nuxt.config.js'`;
 		}
 
 		const buildScripts = [];
 		for ( const scriptName in outputPackage.scripts ) {
-			if ( scriptName.startsWith( "build:" ) )
+			if ( scriptName.startsWith( "generate:" ) )
 				buildScripts.push( scriptName );
 		}
-		outputPackage.scripts["build"] = buildScripts.map( ( s ) => `yarn run '${s}'` ).join( " && " );
+		outputPackage.scripts["generate"] = buildScripts.map( ( s ) => `yarn run '${s}'` ).join( " && " );
 
 		const scripts = {};
 		Object.keys( outputPackage.scripts ).sort().forEach( ( script ) => {
@@ -42,6 +47,11 @@ class SiteGenerator {
 		return outputPackage;
 	}
 
+	/*
+	  Process docker-compose.yml
+
+	  Adds the server to the exposed ports
+	*/
 	processDockerCompose( inputDockerCompose ) {
 		const outputDockerCompose = cloneDeep( inputDockerCompose );
 
