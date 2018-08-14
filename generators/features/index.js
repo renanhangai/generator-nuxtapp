@@ -1,4 +1,5 @@
 const Generator = require('yeoman-generator');
+const FeatureManager = require( "./FeatureManager" );
 const cloneDeep = require( "lodash.clonedeep" );
 const inquirer = require( "inquirer" );
 const path = require( "path" );
@@ -7,17 +8,20 @@ const FEATURES = [
 	new inquirer.Separator( '***** Basic Support *****' ),
 	[ "config", {
 		checked: true,
-		test({ inputPackage, inputComposer }) {
-			return !!inputPackage.scripts.config;	
+		test( featureManager ) {
+			return !!featureManager.packageJson.config;	
 		},
-		output( { generator, outputPackage } ) {
+		output( featureManager, { generator } ) {
 			generator.fs.writeJSON( generator.destinationPath( "config.default.json" ), {} );
-			outputPackage.scripts = Object.assign({
+			featureManager.packageJson.scripts = Object.assign( {
 				"config": "cross-env config-builder config.default.json \"$APP_CONFIG\" +config.json --output-dir \"dist:$APP_BUILD_DIR\" -o config.json -o config.php",
-			}, outputPackage.scripts);
+			}, featureManager.packageJson.scripts );
 		},
 		"package-dev": {
 			"@renanhangai/config-builder": "^0.1.1",
+		},
+		"files": {
+			"src/Config.php": "config/Config.php",
 		},
 	} ],
 	new inquirer.Separator( '***** Language Support *****' ),
@@ -120,7 +124,7 @@ const FEATURES = [
 class FeatureHelper {
 
 
-	static findFeatureDescription( name ) {
+	static findFeature( name ) {
 		const feature = FEATURES.find( ( feature ) => {
 			if ( !Array.isArray( feature ) )
 				return false;
@@ -131,22 +135,17 @@ class FeatureHelper {
 		return feature[1];
 	}
 
-	static getPromptChoices( context, force ) {
-		const { inputPackage, inputComposer } = context;
+	static getPromptChoices( featureManager, force ) {
 		const choices = [];
-		FEATURES.forEach( function( feature ) {
-			if ( feature instanceof inquirer.Separator ) {
-				choices.push( feature );
+		FEATURES.forEach( function( featureDescription ) {
+			if ( featureDescription instanceof inquirer.Separator ) {
+				choices.push( featureDescription );
 				return;
 			} 
 			
-			const featureName = feature[0];
-			const featureDescription = FeatureHelper.findFeatureDescription( featureName );
-			if ( !featureDescription )
-				return;
-
-			const isInstalled = FeatureHelper.checkFeature( featureName, featureDescription, context );
-
+			const featureName = featureDescription[0];
+			const feature     = featureDescription[1];
+			const isInstalled = featureManager.check( feature );
 			const c = { 
 				name: featureName, 
 				checked:  force ? false : featureDescription.checked,
@@ -155,66 +154,6 @@ class FeatureHelper {
 			choices.push( c );
 		});
 		return choices;
-	}
-
-	static checkFeature( featureName, featureDescription, inputContext ) {
-		const { generator, inputPackage, inputComposer } = inputContext;
-
-		if ( featureDescription["package-dev"] ) {
-			if ( !inputPackage.devDependencies )
-				return false;
-			for ( const key in featureDescription["package-dev"] ) {
-				if ( !inputPackage.devDependencies[key] )
-					return false;
-			}
-		}
-		if ( featureDescription["package"] ) {
-			if ( !inputPackage.dependencies )
-				return false;
-			for ( const key in featureDescription["package"] ) {
-				if ( !inputPackage.dependencies[key] )
-					return false;
-			}
-		}
-		return true;
-	}
-
-	static writeFeature( name, outputContext ) {
-		const { generator, outputPackage } = outputContext;
-
-		const featureDescription = FeatureHelper.findFeatureDescription( name );
-		if ( !featureDescription )
-			return;
-
-		if ( featureDescription["package-dev"] ) {
-			outputPackage.devDependencies = Object.assign( {}, featureDescription["package-dev"], outputPackage.devDependencies );
-		}
-		if ( featureDescription["package"] ) {
-			outputPackage.dependencies = Object.assign( {}, featureDescription["package"], outputPackage.dependencies );
-		}
-		if ( featureDescription.output )
-			featureDescription.output.call( null, outputContext );
-
-
-		if ( featureDescription.featureFile ) {
-			outputPackage["nuxt-helper-features"] = [].concat( outputPackage["nuxt-helper-features"] ).concat( name ).filter( Boolean );
-			generator.fs.copy( generator.templatePath( featureDescription.featureFile ), generator.destinationPath( `www/common/nuxt/features/${name}.js` ) );
-		}
-
-		if ( featureDescription.files ) {
-			for( const destFile in featureDescription.files ) {
-				const srcFile = featureDescription.files[ destFile ];
-				generator.fs.copy( generator.templatePath( srcFile ), generator.destinationPath( path.join( destFile ) ) );
-			}
-		}
-	}
-
-	static sortObject( obj, key ) {
-		const src = obj[key];
-		const out = {};
-		const keys = Object.keys( src ).sort();
-		keys.forEach( ( k ) => { out[k] = src[k]; } );
-		obj[key] = out;
 	}
 }
 
@@ -233,20 +172,18 @@ module.exports = class extends Generator {
 	}
 
 	prompting() {
-		const inputPackage = this.fs.readJSON( this.destinationPath( "package.json" ), {} );
-		const choices = FeatureHelper.getPromptChoices({ inputPackage });
-		if ( !choices.some( ( item ) => !item.disabled ) ) {
-			this.log( `Todos os módulos já foram instalados` );
-			return;
-		}
+		this.featureManager = new FeatureManager( this );
 
-		const context = { generator: this, inputPackage };
+		const choices = FeatureHelper.getPromptChoices( this.featureManager, this.options.force );
+		if ( !choices.some( ( item ) => !item.disabled ) )
+			this.log( `Todos os módulos já foram instalados` );
+
 		return this.prompt([{
 			name: 'features',
 			type: 'checkbox',
 			message: 'Diga quais módulos você quer',
 			pageSize: 21,
-			choices: FeatureHelper.getPromptChoices( context, this.options.force ),
+			choices,
 		}]).then( ( answers ) => {
 			this.answers = answers;	
 		});
@@ -255,18 +192,11 @@ module.exports = class extends Generator {
 	writing() {
 		if ( !this.answers )
 			return;
-
-		const inputPackage = this.fs.readJSON( this.destinationPath( "package.json" ), {} );
-		
-		const outputPackage = cloneDeep( inputPackage );
-
-		const context = { generator: this, outputPackage };
-		this.answers.features.forEach( ( f ) => FeatureHelper.writeFeature( f, context ) );
-
-		FeatureHelper.sortObject( outputPackage, 'dependencies' );
-		FeatureHelper.sortObject( outputPackage, 'devDependencies' );
-
-		this.fs.writeJSON( this.destinationPath( "package.json" ), outputPackage );
+		this.answers.features.forEach( ( name ) => {
+			const feature = FeatureHelper.findFeature( name );
+			this.featureManager.install( feature, name );
+		});
+		this.featureManager.write();
 	}
 
 };
