@@ -18,7 +18,7 @@ const FEATURES = [
 			}, featureManager.packageJson.scripts );
 		},
 		"package-dev": {
-			"@renanhangai/config-builder": "^0.1.1",
+			"@renanhangai/config-builder": "^0.2.0",
 		},
 		"files": {
 			"src/Config.php": "config/Config.php",

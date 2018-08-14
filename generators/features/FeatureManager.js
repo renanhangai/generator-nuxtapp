@@ -54,8 +54,8 @@ module.exports = class ProjectInfo {
 	}
 
 	_installPackageDependencies( feature ) {
-		this.packageJson.dependencies = Object.assign( {}, feature["package"], this.packageJson.dependencies );
-		this.packageJson.devDependencies = Object.assign( {}, feature["package-dev"], this.packageJson.devDependencies );
+		this.packageJson.dependencies = Object.assign( {}, this.packageJson.dependencies, feature["package"] );
+		this.packageJson.devDependencies = Object.assign( {}, this.packageJson.devDependencies, feature["package-dev"] );
 	}
 	_installOutput( feature ) {
 		if ( !feature.output )
@@ -83,15 +83,26 @@ module.exports = class ProjectInfo {
 	write() {
 		this._normalize();
 		this._generator.fs.writeJSON( this._generator.destinationPath( "package.json" ), this.packageJson );
-		this._generator.fs.writeJSON( this._generator.destinationPath( "composer.json" ), this.composerJson );
+		this._generator.fs.write( this._generator.destinationPath( "composer.json" ), JSON.stringify( this.composerJson, null, 4 )+"\n" );
 	}
 
 	_normalize() {
 		const nuxtHelperFeatures = [].concat( this.packageJson['nuxt-helper-features'] ).filter( Boolean );
 		this.packageJson['nuxt-helper-features'] = Array.from( new Set( nuxtHelperFeatures ) );
+		sortKeys( this.packageJson, "dependencies" );
+		sortKeys( this.packageJson, "devDependencies" );
 	}
 
 };
+
+function sortKeys( obj, key ) {
+	const oldValue = obj[key];
+	const newValue = {};
+	const keys = Object.keys( oldValue );
+	keys.sort( ( a, b ) => a.localeCompare( b ) );
+	keys.forEach( ( k ) => { newValue[k] = oldValue[k]; } );
+	obj[key] = newValue;
+}
 
 function getPhpNamespace( composerJson ) {
 	let namespace = Object.keys( composerJson.autoload["psr-4"] )[0];
