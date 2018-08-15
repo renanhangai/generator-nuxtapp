@@ -17,6 +17,9 @@ const FEATURES = [
 				"config": "cross-env config-builder config.default.json \"$APP_CONFIG\" +config.json --output-dir \"dist:$APP_BUILD_DIR\" -o config.json -o config.php",
 			}, featureManager.packageJson.scripts );
 		},
+		"composer": {
+			"consolidation/config": "^1.1",
+		},
 		"package-dev": {
 			"@renanhangai/config-builder": "^0.2.0",
 		},
