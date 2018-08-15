@@ -74,6 +74,17 @@ module.exports = class extends Generator {
 		});
 	}
 
+	configuring() {
+		this.featureAnswers = {};
+		return asyncForEach( this.answers.features, ( name ) => {
+			const feature = FeatureHelper.findFeature( name );
+			if ( !feature.prompt )
+				return;
+			return this.prompt( feature.prompt )
+				.then( ( answers ) => this.featureAnswers[ name ] = answers )
+		});
+	}
+
 	writing() {
 		if ( !this.answers )
 			return;
@@ -86,3 +97,14 @@ module.exports = class extends Generator {
 	}
 
 };
+
+function asyncForEach( list, resolver ) {
+	const run = ( i ) => {
+		if ( i >= list.length )
+			return;
+		return Promise.resolve()
+			.then( () => resolver.call( null, list[i] ) )
+			.then( () => run( i + 1 ) );
+	};
+	return Promise.resolve().then( () => run(0) );
+}
