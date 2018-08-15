@@ -6,6 +6,7 @@
     "require": {
         "renanhangai/libweb-api": "^1.4"
     },
+    "require-dev": {},
     "autoload": {
         "psr-4": {
             "<%= answers.phpNamespace %>\\": "src/"
