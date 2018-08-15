@@ -77,6 +77,7 @@ module.exports = class extends Generator {
 	writing() {
 		if ( !this.answers )
 			return;
+		this.featureManager.reload();
 		this.answers.features.forEach( ( name ) => {
 			const feature = FeatureHelper.findFeature( name );
 			this.featureManager.install( feature, name );

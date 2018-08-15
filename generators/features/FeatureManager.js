@@ -8,26 +8,32 @@ module.exports = class ProjectInfo {
 
 	constructor( generator ) {
 		this._generator = generator;
-		this._context = {};
-		this._readComposer();
-		this._readPackage();
+		this.reload();
 	}
 
 	_readComposer() {
-		const inputComposerJson    = this._generator.fs.readJSON( this._generator.destinationPath( "composer.json" ) );
+		try {
+			const inputComposerJson    = this._generator.fs.readJSON( this._generator.destinationPath( "composer.json" ) );
 
-		this.composerJson = cloneDeep( inputComposerJson );
-		this._context.phpNamespace = getPhpNamespace( this.composerJson );
+			this.composerJson = cloneDeep( inputComposerJson );
+			this._context.phpNamespace = getPhpNamespace( this.composerJson );
+		} catch(e) {
+			this.composerJson = {};
+		}
 	}
 
 	_readPackage() {
-		const inputPackageJson = this._generator.fs.readJSON( this._generator.destinationPath( "package.json" ) );
-		this.packageJson = cloneDeep( inputPackageJson );
+		try {
+			const inputPackageJson = this._generator.fs.readJSON( this._generator.destinationPath( "package.json" ) );
+			this.packageJson = cloneDeep( inputPackageJson );
+		} catch( e ) {
+			this.packageJson = {};
+		}
 	}
 
 	check( feature ) {
 		if ( feature["package-dev"] ) {
-			if ( !this.packageJson.devDependencies )
+			if ( !this.packageJson || !this.packageJson.devDependencies )
 				return false;
 			for ( const key in feature["package-dev"] ) {
 				if ( !this.packageJson.devDependencies[key] )
@@ -35,14 +41,36 @@ module.exports = class ProjectInfo {
 			}
 		}
 		if ( feature["package"] ) {
-			if ( !this.packageJson.dependencies )
+			if ( !this.packageJson || !this.packageJson.dependencies )
 				return false;
 			for ( const key in feature["package"] ) {
 				if ( !this.packageJson.dependencies[key] )
 					return false;
 			}
 		}
+		if ( feature["composer"] ) {
+			if ( !this.composerJson || !this.composerJson["require"] )
+				return false;
+			for ( const key in feature["composer"] ) {
+				if ( !this.composerJson["require"][key] )
+					return false;
+			}
+		}
+		if ( feature["composer-dev"] ) {
+			if ( !this.composerJson || !this.composerJson["require-dev"] )
+				return false;
+			for ( const key in feature["composer-dev"] ) {
+				if ( !this.composerJson["require-dev"][key] )
+					return false;
+			}
+		}
 		return true;
+	}
+
+	reload() {
+		this._context = {};
+		this._readPackage();
+		this._readComposer();
 	}
 
 	install( feature, name ) {

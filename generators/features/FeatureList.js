@@ -106,16 +106,20 @@ module.exports = [
 			const append = `-t ./database/phinx.yml.tpl:./database/phinx.yml`;
 			if ( config.indexOf( append ) < 0 )
 				featureManager.packageJson.scripts.config = `${config} ${append}`;
+			featureManager.packageJson.scripts["database:create"] = "./vendor/bin/phinx create -c database/phinx.yml";
+			featureManager.packageJson.scripts["database:migrate"] = "./vendor/bin/phinx migrate -c database/phinx.yml";
+			featureManager.packageJson.scripts["database:rollback"] = "./vendor/bin/phinx rollback -c database/phinx.yml";
 			
 			let configDefault = generator.fs.readJSON( generator.destinationPath( "config.default.json" ) );
-			configDefault = Object.assign( { database: { 
+			configDefault = Object.assign( {}, configDefault );
+			configDefault.database = Object.assign( { 
 				host: "",
 				database: "",
 				username: "",
 				password: "",
 				port: 3306,
 				charset: "utf8mb4",
-			} }, configDefault );
+			}, configDefault.database );
 			generator.fs.writeJSON( generator.destinationPath( "config.default.json" ), configDefault );
 		},
 	} ],
