@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0"></a>
+# [0.2.0](https://github.com/renanhangai/generator-nuxtapp/compare/v0.1.0...v0.2.0) (2018-08-15)
+
+
+### Bug Fixes
+
+* Fixed feature ([ddfea89](https://github.com/renanhangai/generator-nuxtapp/commit/ddfea89))
+
+
+### Features
+
+* **feature:** Added sass-resource-loader ([d548e80](https://github.com/renanhangai/generator-nuxtapp/commit/d548e80))
+* Added illuminate/database ([8021ec6](https://github.com/renanhangai/generator-nuxtapp/commit/8021ec6))
+* Added mysql feature ([db27239](https://github.com/renanhangai/generator-nuxtapp/commit/db27239))
+
+
+
 <a name="0.1.0"></a>
 # 0.1.0 (2018-08-08)
 
