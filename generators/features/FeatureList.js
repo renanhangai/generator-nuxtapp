@@ -88,6 +88,22 @@ module.exports = [
 			"nuxt-buefy": "^0.1.0",
 		},
 	} ],
+	[ "illuminate/database", {
+		"composer": {
+			"illuminate/database": "^5.6",
+		},
+		"files": {
+			"src/core/DB.php": "illuminate-database/DB.php",
+		},
+		test( featureManager, { generator } ) { 
+			return generator.fs.exists( generator.destinationPath( "src/core/DB.php" ) );
+		},
+		output( featureManager, { generator } ) {
+			const mainPhp = generator.fs.read( generator.destinationPath( "src/main.php" ) );
+			if ( mainPhp.indexOf( "DB.php" ) < 0 )
+				generator.fs.append( generator.destinationPath( "src/main.php" ), `require_once __DIR__."/core/DB.php";\n` );
+		},
+	} ],
 	[ "material-design-icons", {
 		"featureFile": "material-design-icons.js",
 		"package": {
