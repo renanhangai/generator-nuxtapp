@@ -94,6 +94,7 @@ module.exports = [
 		},
 		"files": {
 			"src/core/DB.php": "illuminate-database/DB.php",
+			"src/model/Example.php": "illuminate-database/Example.php",
 		},
 		test( featureManager, { generator } ) { 
 			return generator.fs.exists( generator.destinationPath( "src/core/DB.php" ) );
@@ -125,6 +126,8 @@ module.exports = [
 			message: 'Senha do banco de dados',
 		}],
 		test( featureManager, { generator } ) { 
+			if ( !generator.fs.exists( generator.destinationPath( "docker-compose.yml" ) ) )
+				return false;
 			const dockerCompose = YAML.safeLoad( generator.fs.read( generator.destinationPath( "docker-compose.yml" ) ) );
 			return !!dockerCompose.services.database; 
 		},
