@@ -23,9 +23,11 @@ module.exports = class extends Generator {
 			"composer.json": true,
 			"README.md": true,
 			"docker-compose.yml": true,
+			"etc/docker/docker-compose.windows.yml": true,
 			"etc/docker/server/Dockerfile": true,
 			"etc/server/entry.d/app": true,
 			"etc/server/http/default": true,
+			"etc/server/php/php.ini": true,
 			"www/common/nuxt/helper.js": true,
 			"src/main.php": true,
 		};
