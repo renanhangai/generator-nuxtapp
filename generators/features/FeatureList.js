@@ -93,6 +93,32 @@ module.exports = [
 			"@mdi/font": "^2.5.94",
 		},
 	} ],
+	[ "phinx", {
+		"composer-dev": {
+			"robmorgan/phinx": "^0.10.6",
+		},
+		"files": {
+			"database/phinx.yml.tpl": "phinx/phinx.yml.tpl",
+			"database/templates/Migration.php.tpl": "phinx/Migration.php.tpl",
+		},
+		output( featureManager, { generator } ) {
+			const config = featureManager.packageJson.scripts.config;
+			const append = `-t ./database/phinx.yml.tpl:./database/phinx.yml`;
+			if ( config.indexOf( append ) < 0 )
+				featureManager.packageJson.scripts.config = `${config} ${append}`;
+			
+			let configDefault = generator.fs.readJSON( generator.destinationPath( "config.default.json" ) );
+			configDefault = Object.assign( { database: { 
+				host: "",
+				database: "",
+				username: "",
+				password: "",
+				port: 3306,
+				charset: "utf8mb4",
+			} }, configDefault );
+			generator.fs.writeJSON( generator.destinationPath( "config.default.json" ), configDefault );
+		},
+	} ],
 	[ "sass-resource-loader", {
 		"featureFile": "sass-resource-loader.js",
 		"package": {
