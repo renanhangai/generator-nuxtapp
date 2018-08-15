@@ -2,5 +2,8 @@
 
 cd /app/local
 
+if [ "$APP_DOCKER_OS" = "win" ]; then
+	sudo chown -R me:me node_modules/ vendor/
+fi
 yarn install
 composer install
