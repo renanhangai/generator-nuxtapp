@@ -1,0 +1,12 @@
+version: "3"
+services:
+  server:
+    volumes:
+      - node_modules:/app/local/node_modules
+      - vendor:/app/local/vendor
+    environment:
+      - APP_DOCKER_OS=win
+      - CHOKIDAR_USEPOLLING=1
+volumes:
+  node_modules:
+  vendor:
