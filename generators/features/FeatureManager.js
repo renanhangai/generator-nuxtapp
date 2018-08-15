@@ -64,6 +64,8 @@ module.exports = class ProjectInfo {
 					return false;
 			}
 		}
+		if ( feature.test )
+			return feature.test.call( null, this, { generator: this._generator } );
 		return true;
 	}
 
@@ -73,12 +75,12 @@ module.exports = class ProjectInfo {
 		this._readComposer();
 	}
 
-	install( feature, name ) {
-		this._installPackageDependencies( feature, name );
-		this._installComposerDependencies( feature );
-		this._installOutput( feature, name );
-		this._installFeatureFile( feature, name );
-		this._installFiles( feature, name );
+	install( feature, context ) {
+		this._installPackageDependencies( feature, context );
+		this._installComposerDependencies( feature, context );
+		this._installOutput( feature, context );
+		this._installFeatureFile( feature, context );
+		this._installFiles( feature, context );
 		this._normalize();
 	}
 
@@ -90,20 +92,22 @@ module.exports = class ProjectInfo {
 		this.composerJson["require"] = Object.assign( {}, this.composerJson["require"], feature["composer"] );
 		this.composerJson["require-dev"] = Object.assign( {}, this.composerJson["require-dev"], feature["composer-dev"] );
 	}
-	_installOutput( feature ) {
+	_installOutput( feature, context ) {
 		if ( !feature.output )
 			return;
 		feature.output.call( null, this, { 
 			generator: this._generator,
+			answers: context.answers,
+			name: context.name,
 		} );
 	}
-	_installFeatureFile( feature, name ) {
+	_installFeatureFile( feature, { name } ) {
 		if ( !feature.featureFile || !name )
 			return;
 		this.packageJson["nuxt-helper-features"] = [].concat( this.packageJson["nuxt-helper-features"] ).concat( name );
 		this._generator.fs.copy( this._generator.templatePath( feature.featureFile ), this._generator.destinationPath( `www/common/nuxt/features/${name}.js` ) );
 	}
-	_installFiles( feature, name ) {
+	_installFiles( feature, { name } ) {
 		if ( !feature.files )
 			return;
 		for( const destFile in feature.files ) {

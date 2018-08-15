@@ -91,7 +91,10 @@ module.exports = class extends Generator {
 		this.featureManager.reload();
 		this.answers.features.forEach( ( name ) => {
 			const feature = FeatureHelper.findFeature( name );
-			this.featureManager.install( feature, name );
+			this.featureManager.install( feature, {
+				name: name,
+				answers: this.featureAnswers[ name ],
+			});
 		});
 		this.featureManager.write();
 	}

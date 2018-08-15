@@ -1,4 +1,5 @@
 const inquirer = require( "inquirer" );
+const YAML = require( "js-yaml" );
 
 module.exports = [
 	new inquirer.Separator( '***** Basic Support *****' ),
@@ -93,6 +94,56 @@ module.exports = [
 			"@mdi/font": "^2.5.94",
 		},
 	} ],
+	[ "mysql", {
+		"prompt": [{
+			name: 'database',
+			type: 'input',
+			message: 'Nome do banco de dados',
+		}, {
+			name: 'username',
+			type: 'input',
+			message: 'Usuário do banco de dados',
+		}, {
+			name: 'password',
+			type: 'input',
+			message: 'Senha do banco de dados',
+		}],
+		test( featureManager, { generator } ) { 
+			const dockerCompose = YAML.safeLoad( generator.fs.read( generator.destinationPath( "docker-compose.yml" ) ) );
+			return !!dockerCompose.services.database; 
+		},
+		output( featureManager, { generator, answers } ) {
+			const dockerCompose = YAML.safeLoad( generator.fs.read( generator.destinationPath( "docker-compose.yml" ) ) );
+
+			const links = [].concat( dockerCompose.services.server.links ).concat( "database" ).filter( Boolean );
+			dockerCompose.services.server.links = Array.from( new Set( links ) );
+			dockerCompose.services.database = {
+				image: 'mariadb:latest',
+				environment: [
+					`MYSQL_ROOT_PASSWORD=root`,
+					`MYSQL_DATABASE=${answers.database}`,
+					`MYSQL_USER=${answers.username}`,
+					`MYSQL_PASSWORD=${answers.password}`,
+				],
+				volumes: [ 'database:/var/lib/mysql' ],
+				ports: [ "9100:3306" ],
+			};
+			dockerCompose.volumes = Object.assign( { database: null }, dockerCompose.volumes );
+			generator.fs.write( generator.destinationPath( "docker-compose.yml" ), YAML.safeDump( dockerCompose ) );
+
+			let configDefault = generator.fs.readJSON( generator.destinationPath( "config.default.json" ) );
+			configDefault = Object.assign( {}, configDefault );
+			configDefault.database = { 
+				host: "localhost",
+				database: answers.database,
+				username: answers.username,
+				password: answers.password,
+				port: 3306,
+				charset: "utf8mb4",
+			};
+			generator.fs.writeJSON( generator.destinationPath( "config.default.json" ), configDefault );
+		},
+	} ],
 	[ "phinx", {
 		"composer-dev": {
 			"robmorgan/phinx": "^0.10.6",
@@ -109,18 +160,6 @@ module.exports = [
 			featureManager.packageJson.scripts["database:create"] = "./vendor/bin/phinx create -c database/phinx.yml";
 			featureManager.packageJson.scripts["database:migrate"] = "./vendor/bin/phinx migrate -c database/phinx.yml";
 			featureManager.packageJson.scripts["database:rollback"] = "./vendor/bin/phinx rollback -c database/phinx.yml";
-			
-			let configDefault = generator.fs.readJSON( generator.destinationPath( "config.default.json" ) );
-			configDefault = Object.assign( {}, configDefault );
-			configDefault.database = Object.assign( { 
-				host: "",
-				database: "",
-				username: "",
-				password: "",
-				port: 3306,
-				charset: "utf8mb4",
-			}, configDefault.database );
-			generator.fs.writeJSON( generator.destinationPath( "config.default.json" ), configDefault );
 		},
 	} ],
 	[ "sass-resource-loader", {
