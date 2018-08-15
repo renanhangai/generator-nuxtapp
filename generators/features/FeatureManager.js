@@ -47,6 +47,7 @@ module.exports = class ProjectInfo {
 
 	install( feature, name ) {
 		this._installPackageDependencies( feature, name );
+		this._installComposerDependencies( feature );
 		this._installOutput( feature, name );
 		this._installFeatureFile( feature, name );
 		this._installFiles( feature, name );
@@ -56,6 +57,10 @@ module.exports = class ProjectInfo {
 	_installPackageDependencies( feature ) {
 		this.packageJson.dependencies = Object.assign( {}, this.packageJson.dependencies, feature["package"] );
 		this.packageJson.devDependencies = Object.assign( {}, this.packageJson.devDependencies, feature["package-dev"] );
+	}
+	_installComposerDependencies( feature ) {
+		this.composerJson["require"] = Object.assign( {}, this.composerJson["require"], feature["composer"] );
+		this.composerJson["require-dev"] = Object.assign( {}, this.composerJson["require-dev"], feature["composer-dev"] );
 	}
 	_installOutput( feature ) {
 		if ( !feature.output )
