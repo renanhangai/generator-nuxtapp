@@ -23,6 +23,7 @@ module.exports = class extends Generator {
 			"composer.json": true,
 			"README.md": true,
 			"docker-compose.yml": true,
+			"etc/docker/config.json": true,
 			"etc/docker/docker-compose.windows.yml": true,
 			"etc/docker/server/Dockerfile": true,
 			"etc/server/entry.d/app": true,
